@@ -24,6 +24,7 @@ const Routes = () => {
         <Route path="/collections-triumphs" element={<CollectionsTriumphs />} />
         <Route path="/authentication-authorization" element={<AuthenticationAuthorization />} />
         <Route path="/character-management" element={<CharacterManagement />} />
+        <Route path="/auth/callback" element={<AuthenticationAuthorization />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>
       </ErrorBoundary>

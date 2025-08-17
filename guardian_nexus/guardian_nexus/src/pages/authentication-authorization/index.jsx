@@ -15,9 +15,62 @@ const AuthenticationAuthorization = () => {
   const [guardianData, setGuardianData] = useState(null);
 
   // Mock authentication flow
+  // New handler for Bungie API callback
+  useEffect(() => {
+    const handleBungieCallback = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const authCode = urlParams.get('code');
+
+      if (authCode) {
+        setAuthState('loading');
+        try {
+          // Simulate exchanging auth code for an access token
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          // Mock successful token exchange
+          const mockGuardianData = {
+            name: 'Guardian_Beta',
+            class: 'Warlock',
+            powerLevel: 1810,
+            emblem: 'https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=80&h=80&fit=crop',
+            platform: 'bungie'
+          };
+
+          setGuardianData(mockGuardianData);
+          setAuthState('success');
+          localStorage.setItem('guardian_auth', JSON.stringify({
+            authenticated: true,
+            guardianData: mockGuardianData,
+            timestamp: Date.now()
+          }));
+
+          setTimeout(() => navigate('/dashboard'), 3000);
+        } catch (err) {
+          setError({ type: 'token_exchange_failed', message: err.message });
+          setAuthState('error');
+        }
+      }
+    };
+
+    if (window.location.pathname === '/auth/callback') {
+      handleBungieCallback();
+    }
+  }, [navigate]);
+
   const handleAuthenticate = async (platform, rememberMe) => {
     setAuthState('loading');
     setError(null);
+
+    // Redirect to Bungie.net for authorization
+    const clientId = 'YOUR_BUNGIE_CLIENT_ID'; // Replace with your actual Client ID
+    const redirectUri = 'https://zeroij.github.io/destiny2-companion-app/auth/callback';
+    const bungieAuthUrl = `https://www.bungie.net/en/OAuth/Authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+    window.location.href = bungieAuthUrl;
+
+    // The original mock flow is now replaced by the Bungie OAuth redirect.
+    // The rest of this function will not be executed after the redirect.
+
 
     // Simulate authentication process
     try {
