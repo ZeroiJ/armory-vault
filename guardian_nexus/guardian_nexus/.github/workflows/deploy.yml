@@ -17,6 +17,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: guardian_nexus/guardian_nexus
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,13 +29,17 @@ jobs:
           node-version: "18"
           cache: npm
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+      - name: Configure base path
+        run: echo "VITE_BASE=/${GITHUB_REPOSITORY#*/}/" > .env.production
       - name: Build
         run: npm run build
+      - name: Create SPA fallback (404.html)
+        run: cp build/index.html build/404.html && cp .nojekyll build/.nojekyll
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build
+          path: guardian_nexus/guardian_nexus/build
 
   deploy:
     environment:
