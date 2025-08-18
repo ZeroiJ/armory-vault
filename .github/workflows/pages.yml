@@ -38,6 +38,10 @@ jobs:
           VITE_BASE: /destiny2-companion-app/
         run: npm run build
 
+      - name: Add SPA 404 fallback
+        run: |
+          cp guardian_nexus/guardian_nexus/build/index.html guardian_nexus/guardian_nexus/build/404.html
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
