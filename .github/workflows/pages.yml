@@ -16,6 +16,8 @@ concurrency:
 
 jobs:
   build:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,6 +33,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: guardian_nexus/guardian_nexus/package-lock.json
 
+      - name: Compute base path
+        id: base
+        shell: bash
+        run: |
+          if [[ "${{ github.event.repository.name }}" == "${{ github.repository_owner }}.github.io" ]]; then
+            echo "value=/" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=/${{ github.event.repository.name }}/" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install dependencies
         working-directory: guardian_nexus/guardian_nexus
         run: npm ci --no-audit --no-fund
@@ -38,7 +50,7 @@ jobs:
       - name: Build
         working-directory: guardian_nexus/guardian_nexus
         env:
-          VITE_BASE: /destiny2-companion-app/
+          VITE_BASE: ${{ steps.base.outputs.value }}
         run: npm run build
 
       - name: Add SPA 404 fallback
@@ -51,6 +63,9 @@ jobs:
           path: guardian_nexus/guardian_nexus/build
 
   deploy:
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
