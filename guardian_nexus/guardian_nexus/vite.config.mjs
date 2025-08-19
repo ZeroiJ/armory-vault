@@ -7,7 +7,7 @@ import tagger from "@dhiwise/component-tagger";
 export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return defineConfig({
-    base: '/Arsenal/',
+    base: env.VITE_BASE || '/Arsenal/',
     // This changes the out put dir from dist to build
     // comment this out if that isn't relevant for your project
     build: {

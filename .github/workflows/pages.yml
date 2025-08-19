@@ -61,6 +61,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: guardian_nexus/guardian_nexus/build
+          retention-days: 1
 
   deploy:
     permissions:
