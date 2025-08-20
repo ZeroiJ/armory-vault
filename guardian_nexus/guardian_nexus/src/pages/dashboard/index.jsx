@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios'; // Import axios
 import Header from '../../components/ui/Header';
 import CharacterCard from './components/CharacterCard';
 import MilestoneCard from './components/MilestoneCard';
@@ -13,228 +14,57 @@ import Button from '../../components/ui/Button';
 const Dashboard = () => {
   const [selectedCharacter, setSelectedCharacter] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  
+  // State for our data
+  const [characters, setCharacters] = useState([]);
+  const [milestones, setMilestones] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [seasonData, setSeasonData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for characters
-  const mockCharacters = [
-    {
-      id: 1,
-      name: 'Guardian Alpha',
-      class: 'Titan',
-      powerLevel: 1810,
-      emblem: 'https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400&h=200&fit=crop',
-      equippedExotic: {
-        name: 'Thundercrash',
-        type: 'Chest Armor'
-      },
-      lastActivity: '2 hours ago'
-    },
-    {
-      id: 2,
-      name: 'Guardian Beta',
-      class: 'Hunter',
-      powerLevel: 1805,
-      emblem: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=200&fit=crop',
-      equippedExotic: {
-        name: 'Celestial Nighthawk',
-        type: 'Helmet'
-      },
-      lastActivity: '1 day ago'
-    },
-    {
-      id: 3,
-      name: 'Guardian Gamma',
-      class: 'Warlock',
-      powerLevel: 1798,
-      emblem: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop',
-      equippedExotic: {
-        name: 'Phoenix Protocol',
-        type: 'Chest Armor'
-      },
-      lastActivity: '3 days ago'
-    }
-  ];
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [
+        charactersRes,
+        milestonesRes,
+        vendorsRes,
+        activitiesRes,
+        seasonRes,
+      ] = await Promise.all([
+        axios.get('/api/dashboard/characters'),
+        axios.get('/api/dashboard/milestones'),
+        axios.get('/api/dashboard/vendors'),
+        axios.get('/api/dashboard/activities'),
+        axios.get('/api/dashboard/season'),
+      ]);
 
-  // Mock data for milestones
-  const mockMilestones = [
-    {
-      id: 1,
-      name: 'Vow of the Disciple',
-      type: 'Raid',
-      progress: 4,
-      total: 6,
-      completed: false,
-      rewards: ['Pinnacle Gear', 'Raid Weapons'],
-      powerfulReward: '1810'
-    },
-    {
-      id: 2,
-      name: 'Grandmaster Nightfall',
-      type: 'Nightfall',
-      progress: 3,
-      total: 3,
-      completed: true,
-      rewards: ['Adept Weapons', 'Ascendant Shards'],
-      powerfulReward: '1810'
-    },
-    {
-      id: 3,
-      name: 'Crucible Playlist',
-      type: 'Crucible',
-      progress: 5,
-      total: 8,
-      completed: false,
-      rewards: ['Powerful Gear'],
-      powerfulReward: '1807'
-    },
-    {
-      id: 4,
-      name: 'Seasonal Challenges',
-      type: 'Seasonal',
-      progress: 12,
-      total: 15,
-      completed: false,
-      rewards: ['Bright Dust', 'XP'],
-      powerfulReward: '1805'
-    }
-  ];
+      setCharacters(charactersRes.data);
+      setMilestones(milestonesRes.data);
+      setVendors(vendorsRes.data);
+      setActivities(activitiesRes.data);
+      setSeasonData(seasonRes.data);
 
-  // Mock data for vendors
-  const mockVendors = [
-    {
-      id: 1,
-      name: 'Xur',
-      location: 'Tower Hangar',
-      image: 'https://images.pexels.com/photos/2422915/pexels-photo-2422915.jpeg?w=100&h=100&fit=crop',
-      resetTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      featuredItems: [
-        {
-          name: 'Gjallarhorn',
-          type: 'Exotic Rocket Launcher',
-          rarity: 'Exotic',
-          cost: '29',
-          icon: 'Rocket'
-        },
-        {
-          name: 'Orpheus Rig',
-          type: 'Hunter Leg Armor',
-          rarity: 'Exotic',
-          cost: '23',
-          icon: 'Shield'
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Ada-1',
-      location: 'Tower Annex',
-      image: 'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?w=100&h=100&fit=crop',
-      resetTime: new Date(Date.now() + 18 * 60 * 60 * 1000),
-      featuredItems: [
-        {
-          name: 'Protective Light',
-          type: 'Combat Style Mod',
-          rarity: 'Legendary',
-          cost: '10',
-          icon: 'Shield'
-        },
-        {
-          name: 'Charged with Light',
-          type: 'Combat Style Mod',
-          rarity: 'Legendary',
-          cost: '10',
-          icon: 'Zap'
-        }
-      ]
-    }
-  ];
+      if (charactersRes.data?.length > 0) {
+        setSelectedCharacter(charactersRes.data?.[0]);
+      }
 
-  // Mock data for activities
-  const mockActivities = [
-    {
-      id: 1,
-      type: 'exotic_drop',
-      playerName: 'Guardian Alpha',
-      description: 'obtained',
-      details: {
-        item: 'Vex Mythoclast',
-        location: 'Vault of Glass'
-      },
-      timestamp: new Date(Date.now() - 30 * 60 * 1000)
-    },
-    {
-      id: 2,
-      type: 'raid_completion',
-      playerName: 'ClanMate_42',
-      description: 'completed',
-      details: {
-        location: 'King\'s Fall',
-        score: '285,000'
-      },
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
-    },
-    {
-      id: 3,
-      type: 'triumph',
-      playerName: 'Guardian Beta',
-      description: 'unlocked triumph',
-      details: {
-        item: 'Flawless Raider'
-      },
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000)
-    },
-    {
-      id: 4,
-      type: 'clan_activity',
-      playerName: 'ClanLeader_99',
-      description: 'invited new member',
-      details: {
-        item: 'DestinyPlayer_123'
-      },
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000)
-    },
-    {
-      id: 5,
-      type: 'pvp_match',
-      playerName: 'Guardian Gamma',
-      description: 'achieved',
-      details: {
-        item: 'We Ran Out of Medals',
-        location: 'Trials of Osiris',
-        score: '7-0'
-      },
-      timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000)
-    }
-  ];
-
-  // Mock data for seasonal progress
-  const mockSeasonData = {
-    name: 'Season of the Witch',
-    currentRank: 127,
-    maxRank: 200,
-    currentXP: 75000,
-    nextLevelXP: 100000,
-    daysRemaining: 45,
-    availableRewards: 8,
-    nextReward: {
-      name: 'Exotic Engram',
-      rank: 130
-    },
-    weeklyChallenges: {
-      completed: 7,
-      total: 10
+    } catch (error) {
+      console.error("Failed to fetch dashboard data", error);
+      // Handle error state in UI
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (mockCharacters?.length > 0) {
-      setSelectedCharacter(mockCharacters?.[0]);
-    }
+    fetchData();
   }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await fetchData();
     setRefreshing(false);
   };
 
@@ -249,6 +79,17 @@ const Dashboard = () => {
   const handleLoadoutSwitch = () => {
     console.log('Loadout switch clicked');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Icon name="Loader" className="animate-spin h-12 w-12 text-primary mx-auto" />
+          <p className="mt-4 text-lg text-muted-foreground">Loading Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -310,7 +151,7 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {mockCharacters?.map((character) => (
+                  {characters?.map((character) => (
                     <CharacterCard
                       key={character?.id}
                       character={character}
@@ -333,7 +174,7 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {mockMilestones?.map((milestone) => (
+                  {milestones?.map((milestone) => (
                     <MilestoneCard
                       key={milestone?.id}
                       milestone={milestone}
@@ -357,7 +198,7 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {mockVendors?.map((vendor) => (
+                  {vendors?.map((vendor) => (
                     <VendorCard
                       key={vendor?.id}
                       vendor={vendor}
@@ -370,7 +211,7 @@ const Dashboard = () => {
             {/* Right Column - Activity Feed & Quick Actions */}
             <div className="lg:col-span-4 space-y-6">
               {/* Seasonal Progress */}
-              <SeasonalProgress seasonData={mockSeasonData} />
+              <SeasonalProgress seasonData={seasonData} />
 
               {/* Quick Actions */}
               <QuickActions
@@ -380,7 +221,7 @@ const Dashboard = () => {
               />
 
               {/* Activity Feed */}
-              <ActivityFeed activities={mockActivities} />
+              <ActivityFeed activities={activities} />
             </div>
           </div>
 
