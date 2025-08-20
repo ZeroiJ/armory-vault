@@ -7,6 +7,7 @@ import FeaturePreview from './components/FeaturePreview';
 import LoadingState from './components/LoadingState';
 import ErrorState from './components/ErrorState';
 import Icon from '../../components/AppIcon';
+import { getMembershipData, getCharacterData } from '../../utils/bungieApi';
 
 const AuthenticationAuthorization = () => {
   const navigate = useNavigate();
@@ -51,21 +52,39 @@ const AuthenticationAuthorization = () => {
           console.log('Token Data:', tokenData); // For verification
 
           // For now, we'll just use mock data for the UI after successful token exchange
-          const mockGuardianData = {
-            name: 'Guardian_Beta',
-            class: 'Warlock',
-            powerLevel: 1810,
-            emblem: 'https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=80&h=80&fit=crop',
-            platform: 'bungie'
+          // Fetch membership data
+          const membershipData = await getMembershipData(tokenData.membership_id);
+          const primaryMembership = membershipData.destinyMemberships[0]; // Assuming the first one is the primary
+
+          // Fetch character data
+          const characterData = await getCharacterData(primaryMembership.membershipType, primaryMembership.membershipId);
+
+          // Extract relevant guardian data for display
+          const characters = Object.values(characterData.characters.data);
+          const firstCharacter = characters[0]; // Get the first character for display
+
+          const realGuardianData = {
+            name: firstCharacter?.classType === 0 ? 'Titan' : firstCharacter?.classType === 1 ? 'Hunter' : 'Warlock',
+            class: firstCharacter?.classType === 0 ? 'Titan' : firstCharacter?.classType === 1 ? 'Hunter' : 'Warlock',
+            powerLevel: firstCharacter?.light,
+            emblem: `https://www.bungie.net${firstCharacter?.emblemPath}`,
+            platform: primaryMembership.crossSaveOverride === 0 ? primaryMembership.membershipType : primaryMembership.crossSaveOverride,
+            membershipId: primaryMembership.membershipId,
+            membershipType: primaryMembership.membershipType,
+            characters: characterData.characters.data,
+            profile: characterData.profile.data,
+            characterEquipment: characterData.characterEquipment.data,
+            characterInventories: characterData.characterInventories.data,
           };
 
-          setGuardianData(mockGuardianData);
+          setGuardianData(realGuardianData);
           setAuthState('success');
           localStorage.setItem('guardian_auth', JSON.stringify({
             authenticated: true,
             accessToken: tokenData.access_token,
             membershipId: tokenData.membership_id,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            guardianData: realGuardianData, // Store real data
           }));
 
           setTimeout(() => navigate('/dashboard'), 3000);

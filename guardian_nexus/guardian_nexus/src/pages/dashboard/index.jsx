@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios'; // Import axios
+import { getCharacterData, getMilestones, getVendors, getActivities, getSeasonData } from '../../utils/bungieApi'; // Import Bungie API functions
 import Header from '../../components/ui/Header';
 import CharacterCard from './components/CharacterCard';
 import MilestoneCard from './components/MilestoneCard';
@@ -26,29 +26,34 @@ const Dashboard = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [
-        charactersRes,
-        milestonesRes,
-        vendorsRes,
-        activitiesRes,
-        seasonRes,
-      ] = await Promise.all([
-        axios.get('/api/dashboard/characters'),
-        axios.get('/api/dashboard/milestones'),
-        axios.get('/api/dashboard/vendors'),
-        axios.get('/api/dashboard/activities'),
-        axios.get('/api/dashboard/season'),
+      const authData = JSON.parse(localStorage.getItem('guardian_auth'));
+      if (!authData || !authData.authenticated) {
+        // Handle not authenticated state, maybe redirect to login
+        setLoading(false);
+        return;
+      }
+
+      const { membershipId, membershipType, guardianData } = authData;
+
+      // Use characters from guardianData stored during authentication
+      const charactersArray = Object.values(guardianData.characters);
+      setCharacters(charactersArray);
+      if (charactersArray.length > 0) {
+        setSelectedCharacter(charactersArray[0]);
+      }
+
+      // Fetch other data using Bungie API functions
+      const [milestonesRes, vendorsRes, activitiesRes, seasonRes] = await Promise.all([
+        getMilestones(membershipType, membershipId),
+        getVendors(membershipType, membershipId),
+        getActivities(membershipType, membershipId),
+        getSeasonData(membershipType, membershipId),
       ]);
 
-      setCharacters(charactersRes.data);
-      setMilestones(milestonesRes.data);
-      setVendors(vendorsRes.data);
-      setActivities(activitiesRes.data);
-      setSeasonData(seasonRes.data);
-
-      if (charactersRes.data?.length > 0) {
-        setSelectedCharacter(charactersRes.data?.[0]);
-      }
+      setMilestones(milestonesRes);
+      setVendors(vendorsRes);
+      setActivities(activitiesRes);
+      setSeasonData(seasonRes);
 
     } catch (error) {
       console.error("Failed to fetch dashboard data", error);
