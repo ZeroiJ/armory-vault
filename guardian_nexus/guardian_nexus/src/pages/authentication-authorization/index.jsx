@@ -24,10 +24,33 @@ const AuthenticationAuthorization = () => {
       if (authCode) {
         setAuthState('loading');
         try {
-          // Simulate exchanging auth code for an access token
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          // Mock successful token exchange
+          // Exchange authorization code for an access token
+          const tokenUrl = 'https://www.bungie.net/platform/app/oauth/token/';
+          const clientId = import.meta.env.VITE_BUNGIE_CLIENT_ID;
+          const clientSecret = import.meta.env.VITE_BUNGIE_CLIENT_SECRET;
+
+          const response = await fetch(tokenUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+              'grant_type': 'authorization_code',
+              'code': authCode,
+              'client_id': clientId,
+              'client_secret': clientSecret,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error_description || 'Token exchange failed');
+          }
+
+          const tokenData = await response.json();
+          console.log('Token Data:', tokenData); // For verification
+
+          // For now, we'll just use mock data for the UI after successful token exchange
           const mockGuardianData = {
             name: 'Guardian_Beta',
             class: 'Warlock',
@@ -40,7 +63,8 @@ const AuthenticationAuthorization = () => {
           setAuthState('success');
           localStorage.setItem('guardian_auth', JSON.stringify({
             authenticated: true,
-            guardianData: mockGuardianData,
+            accessToken: tokenData.access_token,
+            membershipId: tokenData.membership_id,
             timestamp: Date.now()
           }));
 
@@ -62,9 +86,9 @@ const AuthenticationAuthorization = () => {
     setError(null);
 
     // Redirect to Bungie.net for authorization
-    const clientId = 'YOUR_BUNGIE_CLIENT_ID'; // Replace with your actual Client ID
-    const redirectUri = 'https://zeroij.github.io/destiny2-companion-app/auth/callback';
-    const bungieAuthUrl = `https://www.bungie.net/en/OAuth/Authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    const clientId = import.meta.env.VITE_BUNGIE_CLIENT_ID;
+    const redirectUri = import.meta.env.VITE_BUNGIE_REDIRECT_URI; // Set in .env for local dev
+    const bungieAuthUrl = `${import.meta.env.VITE_BUNGIE_OAUTH_URL}?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
     window.location.href = bungieAuthUrl;
 

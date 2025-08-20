@@ -6,3 +6,6 @@ node_modules
 .vscode/
 .idea/
 vite.config.*s.*
+.env
+.cursor/
+_zeroij_github_io/
