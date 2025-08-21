@@ -15,8 +15,6 @@ const AuthenticationAuthorization = () => {
   const [error, setError] = useState(null);
   const [guardianData, setGuardianData] = useState(null);
 
-  // Mock authentication flow
-  // New handler for Bungie API callback
   useEffect(() => {
     const handleBungieCallback = async () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -51,7 +49,6 @@ const AuthenticationAuthorization = () => {
           const tokenData = await response.json();
           console.log('Token Data:', tokenData); // For verification
 
-          // For now, we'll just use mock data for the UI after successful token exchange
           // Fetch membership data
           const membershipData = await getMembershipData(tokenData.membership_id);
           const primaryMembership = membershipData.destinyMemberships[0]; // Assuming the first one is the primary
@@ -100,71 +97,13 @@ const AuthenticationAuthorization = () => {
     }
   }, [navigate]);
 
-  const handleAuthenticate = async (platform, rememberMe) => {
-    setAuthState('loading');
-    setError(null);
-
+    const handleAuthenticate = async (platform, rememberMe) => {
     // Redirect to Bungie.net for authorization
     const clientId = import.meta.env.VITE_BUNGIE_CLIENT_ID;
     const redirectUri = import.meta.env.VITE_BUNGIE_REDIRECT_URI; // Set in .env for local dev
     const bungieAuthUrl = `${import.meta.env.VITE_BUNGIE_OAUTH_URL}?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
     window.location.href = bungieAuthUrl;
-
-    // The original mock flow is now replaced by the Bungie OAuth redirect.
-    // The rest of this function will not be executed after the redirect.
-
-
-    // Simulate authentication process
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Mock random success/failure for demonstration
-      const shouldSucceed = Math.random() > 0.3; // 70% success rate
-
-      if (shouldSucceed) {
-        // Mock successful authentication
-        const mockGuardianData = {
-          name: 'Guardian_Alpha',
-          class: 'Titan',
-          powerLevel: 1810,
-          emblem: 'https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=80&h=80&fit=crop',
-          platform: platform
-        };
-
-        setGuardianData(mockGuardianData);
-        setAuthState('success');
-
-        // Store authentication data if remember me is checked
-        if (rememberMe) {
-          localStorage.setItem('guardian_auth', JSON.stringify({
-            authenticated: true,
-            platform: platform,
-            guardianData: mockGuardianData,
-            timestamp: Date.now()
-          }));
-        }
-
-        // Redirect to dashboard after successful authentication
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 3000);
-      } else {
-        // Mock authentication failure
-        const errorTypes = ['network', 'auth_failed', 'account_restricted', 'maintenance', 'rate_limit'];
-        const randomError = errorTypes?.[Math.floor(Math.random() * errorTypes?.length)];
-        
-        throw new Error(randomError);
-      }
-    } catch (err) {
-      setError({
-        type: err?.message,
-        code: `BNG-${Math.floor(Math.random() * 9000) + 1000}`,
-        timestamp: new Date()?.toISOString()
-      });
-      setAuthState('error');
-    }
   };
 
   const handleRetry = () => {
@@ -178,27 +117,6 @@ const AuthenticationAuthorization = () => {
     setError(null);
     setGuardianData(null);
   };
-
-  // Check for existing authentication on component mount
-  useEffect(() => {
-    const storedAuth = localStorage.getItem('guardian_auth');
-    if (storedAuth) {
-      try {
-        const authData = JSON.parse(storedAuth);
-        const isExpired = Date.now() - authData?.timestamp > 7 * 24 * 60 * 60 * 1000; // 7 days
-
-        if (authData?.authenticated && !isExpired) {
-          // Auto-redirect if already authenticated
-          navigate('/dashboard');
-        } else {
-          // Clear expired authentication
-          localStorage.removeItem('guardian_auth');
-        }
-      } catch (err) {
-        localStorage.removeItem('guardian_auth');
-      }
-    }
-  }, [navigate]);
 
   const renderContent = () => {
     switch (authState) {

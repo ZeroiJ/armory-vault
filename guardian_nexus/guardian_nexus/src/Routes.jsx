@@ -9,6 +9,7 @@ import WeaponArmorDatabase from './pages/weapon-armor-database';
 import CollectionsTriumphs from './pages/collections-triumphs';
 import AuthenticationAuthorization from './pages/authentication-authorization';
 import CharacterManagement from './pages/character-management';
+import PrivateRoute from "components/PrivateRoute";
 
 const Routes = () => {
   return (
@@ -18,12 +19,12 @@ const Routes = () => {
       <RouterRoutes>
         {/* Define your route here */}
         <Route path="/" element={<AuthenticationAuthorization />} />
-        <Route path="/loadout-builder-optimizer" element={<LoadoutBuilderOptimizer />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/weapon-armor-database" element={<WeaponArmorDatabase />} />
-        <Route path="/collections-triumphs" element={<CollectionsTriumphs />} />
+        <Route path="/loadout-builder-optimizer" element={<PrivateRoute><LoadoutBuilderOptimizer /></PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/weapon-armor-database" element={<PrivateRoute><WeaponArmorDatabase /></PrivateRoute>} />
+        <Route path="/collections-triumphs" element={<PrivateRoute><CollectionsTriumphs /></PrivateRoute>} />
         <Route path="/authentication-authorization" element={<AuthenticationAuthorization />} />
-        <Route path="/character-management" element={<CharacterManagement />} />
+        <Route path="/character-management" element={<PrivateRoute><CharacterManagement /></PrivateRoute>} />
         <Route path="/auth/callback" element={<AuthenticationAuthorization />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>
