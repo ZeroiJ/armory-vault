@@ -47,7 +47,6 @@ const AuthenticationAuthorization = () => {
           }
 
           const tokenData = await response.json();
-          console.log('Token Data:', tokenData); // For verification
 
           // Fetch membership data
           const membershipData = await getMembershipData(tokenData.membership_id);
