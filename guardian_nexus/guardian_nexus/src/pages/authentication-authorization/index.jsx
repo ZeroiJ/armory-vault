@@ -19,14 +19,17 @@ const AuthenticationAuthorization = () => {
     const handleBungieCallback = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const authCode = urlParams.get('code');
+      console.log('Auth Code:', authCode);
 
       if (authCode) {
         setAuthState('loading');
         try {
-          // Exchange authorization code for an access token
           const tokenUrl = 'https://www.bungie.net/platform/app/oauth/token/';
           const clientId = import.meta.env.VITE_BUNGIE_CLIENT_ID;
           const clientSecret = import.meta.env.VITE_BUNGIE_CLIENT_SECRET;
+
+          console.log('Token URL:', tokenUrl);
+          console.log('Client ID:', clientId);
 
           const response = await fetch(tokenUrl, {
             method: 'POST',
@@ -41,12 +44,15 @@ const AuthenticationAuthorization = () => {
             }),
           });
 
+          console.log('Fetch Response Status:', response.status);
+          const responseData = await response.json();
+          console.log('Fetch Response Data:', responseData);
+
           if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error_description || 'Token exchange failed');
+            throw new Error(responseData.error_description || 'Token exchange failed');
           }
 
-          const tokenData = await response.json();
+          const tokenData = responseData;
 
           // Fetch membership data
           const membershipData = await getMembershipData(tokenData.membership_id);
@@ -85,6 +91,7 @@ const AuthenticationAuthorization = () => {
 
           setTimeout(() => navigate('/dashboard'), 3000);
         } catch (err) {
+          console.error('Error during token exchange:', err);
           setError({ type: 'token_exchange_failed', message: err.message });
           setAuthState('error');
         }
@@ -93,7 +100,13 @@ const AuthenticationAuthorization = () => {
 
     if (window.location.pathname === '/auth/callback') {
       console.log('Handling Bungie callback...');
-      handleBungieCallback();
+      try {
+        handleBungieCallback();
+      } catch (error) {
+        console.error('Error in handleBungieCallback:', error);
+        setError({ type: 'callback_error', message: error.message });
+        setAuthState('error');
+      }
     }
   }, [navigate]);
 
