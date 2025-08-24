@@ -55,12 +55,12 @@ jobs:
 
       - name: Add SPA 404 fallback
         run: |
-          cp guardian_nexus/guardian_nexus/build/index.html guardian_nexus/guardian_nexus/build/404.html
+          cp guardian_nexus/guardian_nexus/dist/index.html guardian_nexus/guardian_nexus/dist/404.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: guardian_nexus/guardian_nexus/build
+          path: guardian_nexus/guardian_nexus/dist
           retention-days: 1
 
   deploy:
