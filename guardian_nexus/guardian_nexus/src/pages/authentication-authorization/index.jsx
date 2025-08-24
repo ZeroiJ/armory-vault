@@ -92,6 +92,7 @@ const AuthenticationAuthorization = () => {
     };
 
     if (window.location.pathname === '/auth/callback') {
+      console.log('Handling Bungie callback...');
       handleBungieCallback();
     }
   }, [navigate]);
