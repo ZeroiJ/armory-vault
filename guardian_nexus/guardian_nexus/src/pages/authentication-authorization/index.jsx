@@ -19,40 +19,24 @@ const AuthenticationAuthorization = () => {
     const handleBungieCallback = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const authCode = urlParams.get('code');
-      console.log('Auth Code:', authCode);
 
       if (authCode) {
         setAuthState('loading');
         try {
-          const tokenUrl = 'https://www.bungie.net/platform/app/oauth/token/';
-          const clientId = import.meta.env.VITE_BUNGIE_CLIENT_ID;
-          const clientSecret = import.meta.env.VITE_BUNGIE_CLIENT_SECRET;
-
-          console.log('Token URL:', tokenUrl);
-          console.log('Client ID:', clientId);
-
-          const response = await fetch(tokenUrl, {
+          const response = await fetch('/api/bungie-auth', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
+              'Content-Type': 'application/json',
             },
-            body: new URLSearchParams({
-              'grant_type': 'authorization_code',
-              'code': authCode,
-              'client_id': clientId,
-              'client_secret': clientSecret,
-            }),
+            body: JSON.stringify({ code: authCode }),
           });
 
-          console.log('Fetch Response Status:', response.status);
-          const responseData = await response.json();
-          console.log('Fetch Response Data:', responseData);
-
           if (!response.ok) {
-            throw new Error(responseData.error_description || 'Token exchange failed');
+            const errorData = await response.json();
+            throw new Error(errorData.error_description || 'Token exchange failed');
           }
 
-          const tokenData = responseData;
+          const tokenData = await response.json();
 
           // Fetch membership data
           const membershipData = await getMembershipData(tokenData.membership_id);
@@ -91,7 +75,6 @@ const AuthenticationAuthorization = () => {
 
           setTimeout(() => navigate('/dashboard'), 3000);
         } catch (err) {
-          console.error('Error during token exchange:', err);
           setError({ type: 'token_exchange_failed', message: err.message });
           setAuthState('error');
         }
@@ -99,7 +82,6 @@ const AuthenticationAuthorization = () => {
     };
 
     if (window.location.pathname === '/auth/callback') {
-      console.log('Handling Bungie callback...');
       try {
         handleBungieCallback();
       } catch (error) {
