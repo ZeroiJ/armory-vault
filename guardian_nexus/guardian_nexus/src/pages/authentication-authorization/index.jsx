@@ -23,7 +23,8 @@ const AuthenticationAuthorization = () => {
       if (authCode) {
         setAuthState('loading');
         try {
-          const response = await fetch('/api/bungie-auth', {
+          const baseUrl = import.meta.env.VITE_BUNGIE_REDIRECT_URI.replace('/auth/callback', '');
+          const response = await fetch(`${baseUrl}/api/bungie-auth`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
