@@ -15,7 +15,7 @@ export default ({ mode }) => {
       chunkSizeWarningLimit: 2000,
       rollupOptions: {
         input: {
-          main: 'public/index.html'
+          main: './index.html'
         }
       }
     },
