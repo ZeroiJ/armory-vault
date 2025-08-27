@@ -23,7 +23,7 @@ const AuthenticationAuthorization = () => {
       if (authCode) {
         setAuthState('loading');
         try {
-          const response = await fetch('/api/bungie-auth', {
+          const response = await fetch('/api/auth', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
