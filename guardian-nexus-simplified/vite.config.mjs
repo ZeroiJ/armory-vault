@@ -13,11 +13,6 @@ export default ({ mode }) => {
     build: {
       outDir: "dist",
       chunkSizeWarningLimit: 2000,
-      rollupOptions: {
-        input: {
-          main: './index.html'
-        }
-      }
     },
     plugins: [tsconfigPaths(), react(), tagger()],
     server: {
