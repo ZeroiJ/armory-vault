@@ -7,11 +7,12 @@ import tagger from "@dhiwise/component-tagger";
 export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return defineConfig({
+    root: './',
     base: env.VITE_BASE || '/guardian_nexus/',
     // This changes the out put dir from dist to build
     // comment this out if that isn't relevant for your project
     build: {
-      outDir: "dist",
+      outDir: "build",
       chunkSizeWarningLimit: 2000,
     },
     plugins: [tsconfigPaths(), react(), tagger()],
